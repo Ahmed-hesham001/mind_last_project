@@ -22,9 +22,9 @@ char i=0;
 
 bool door_state = false;
 bool face_rec = false;
-bool password = false;
+char password = false;
 bool door_key = false;
-char choice = 0;
+// char choice = 0;
 
 void setup() {
   // put your setup code here, to run once:
@@ -38,22 +38,7 @@ void loop() {
   if (face_rec) {
     door_state = true;
   } else {
-    //3 choices
-    //1)open the door and add face to data base
-    //2)just open the door
-    //3)add password
-    //get choice from serial monitor
-    switch (choice) {
-      case 1:
-        //add face to database
-        door_state = true;
-        break;
-      case 2:
-        //just open the door
-        door_state = true;
-        break;
-      case 3:
-        //read password
+    //read password
 
         char key=getKey();
         delay(150);
@@ -70,21 +55,28 @@ void loop() {
           }
         }
 
+        //sends password to python code
         if(i==4){
-          Serial.println(In_Pass);//sends password to python code
+          Serial.println(In_Pass);
           i=0;
           In_Pass="";
         }
-        if (password) {
+
+        //checks password
+        if (password==1) {
           //open the door
           door_state = true;
-        } else {
+        } else if(password==-1) {
           //buzzer and warning message
           door_state = false;
         }
-        break;
+        else{
+          //No password is written
+          door_state=false;
+
+        }
     }
-  }
+  
 
   if (door_state){
     //open the door and start all functions
@@ -109,7 +101,7 @@ for(int i=0;i<4;i++)
 void init_keypad() {
   for(int i=0;i<4;i++)
       {
-        //Should be INPUT_PULLUP and OUTPUT
+        //Should be INPUT and OUTPUT
           pinMode(rowPins[i],INPUT);
           pinMode(colPins[i],OUTPUT);
         
