@@ -1,6 +1,13 @@
 #include <Atmega8_IO.h>
+#include<Servo.h>
 
 using namespace std;
+
+#define servoPin PIN_PB2
+#define pirPin PIN_PC0
+#define buzzerPin PIN_PC1
+
+Servo myservo;
 
 void init_keypad();
 char getKey();
@@ -19,73 +26,70 @@ String Saved_Pass="4545";
 String In_Pass="";
 
 char i=0;
-
-bool door_state = false;
-bool face_rec = false;
-char password = false;
-bool door_key = false;
-// char choice = 0;
-
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+
   init_keypad();
+
+  myservo.attach(servoPin);
+  myservo.write(0);
+
+  pinMode(pirPin,INPUT);
+  pinMode(buzzerPin,OUTPUT);
   
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  if (face_rec) {
-    door_state = true;
-  } else {
-    //read password
 
-        char key=getKey();
-        delay(150);
+  char MotionDetected=digitalRead(pirPin);
 
-        if(key != 'Q'){
-          
-          if (key){
+  char key=getKey();
+  delay(150);
 
-            In_Pass+=key;
-            Serial.print("Key Pressed : ");
-            Serial.println(key);
-            i++;
+  if(key != 'Q'){
+    
+    if (key){
 
-          }
-        }
+      In_Pass+=key;
+      Serial.print("Key Pressed : ");
+      Serial.println(key);
+      i++;
 
-        //sends password to python code
-        if(i==4){
-          Serial.println(In_Pass);
-          i=0;
-          In_Pass="";
-        }
-
-        //checks password
-        if (password==1) {
-          //open the door
-          door_state = true;
-        } else if(password==-1) {
-          //buzzer and warning message
-          door_state = false;
-        }
-        else{
-          //No password is written
-          door_state=false;
-
-        }
     }
-  
-
-  if (door_state){
-    //open the door and start all functions
   }
-  else {
-    //pir sensor code
+
+  if(i==4){
+    Serial.println(In_Pass);
+    if(In_Pass==Saved_Pass){
+
+      Serial.println("Access Granted");
+      myservo.write(90);
+      delay(3000);
+      myservo.write(0);
+
+    }
+    else{
+      
+      Serial.println("Access Denied");
+
+    }
+    i=0;
+    In_Pass="";
+  }
+
+  if(MotionDetected){
+
+    digitalWrite(buzzerPin,HIGH);
+    Serial.println("EMSK 7RAMY");
+
+  }
+  else{
+
+    digitalWrite(buzzerPin,LOW);
+
   }
 }
-
 
 ///functions to use keypad////
 void SetCols(){
@@ -101,7 +105,7 @@ for(int i=0;i<4;i++)
 void init_keypad() {
   for(int i=0;i<4;i++)
       {
-        //Should be INPUT and OUTPUT
+        //Should be INPUT_PULLUP and OUTPUT
           pinMode(rowPins[i],INPUT);
           pinMode(colPins[i],OUTPUT);
         
