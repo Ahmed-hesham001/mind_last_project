@@ -1,6 +1,8 @@
 #include <Atmega8_IO.h>
 #include <math.h>
 
+
+//V1
 // #define ntc_pin   PIN_PC1
 
 // #define nominal_resistance 20000
@@ -42,6 +44,9 @@
 //   Serial.println("*C");
 //   delay(1000);
 // }
+
+
+//V2
 // Constants and pin definitions
 // Constants and pin definitions
 // const int analogPin = PC1;       // Pin connected to the voltage divider
@@ -99,81 +104,174 @@
 //   delay(1000);  // Wait 1 second before repeating
 // }
 
-const int SAMPLE_NUMBER = 10;
 
-const double BALANCE_RESISTOR = 10000.0;
+//V3
+// const int SAMPLE_NUMBER = 10;
 
-const double MAX_ADC = 1023.0;
+// const double BALANCE_RESISTOR = 10000.0;
 
-const double BETA = 3974.0;
+// const double MAX_ADC = 1023.0;
 
-const double ROOM_TEMP = 298.15;  // room temperature in Kelvin
+// const double BETA = 3974.0;
 
-const double RESISTOR_ROOM_TEMP = 10000.0;
+// const double ROOM_TEMP = 298.15;  // room temperature in Kelvin
 
-double currentTemperature = 0;
+// const double RESISTOR_ROOM_TEMP = 10000.0;
 
-int thermistorPin = PC1;  // Where the ADC samples the resistor divider's output
+// double currentTemperature = 0;
+
+// int thermistorPin = PC1;  // Where the ADC samples the resistor divider's output
+
+// void setup() {
+//   // Set the port speed for serial window messages
+//   Serial.begin(9600);
+//   pinMode(thermistorPin, INPUT);
+// }
+
+
+// void loop() {
+
+//   currentTemperature = readThermistor();
+//   delay(3000);
+
+
+//   if (currentTemperature > 21.0 && currentTemperature < 24.0) {
+//     Serial.print("It is ");
+//     Serial.print(currentTemperature);
+//     Serial.println("C.  very nice temperature.");
+//   } else if (currentTemperature >= 24.0) {
+//     Serial.print("It is ");
+//     Serial.print(currentTemperature);
+//     Serial.println("C. hot hot hot");
+//   } else {
+//     Serial.print("It is ");
+//     Serial.print(currentTemperature);
+//     Serial.println("C. saaaaa23aaaaa");
+//   }
+// }
+
+
+
+// double readThermistor() {
+//   // variables that live in this function
+//   double rThermistor = 0;         // Holds thermistor resistance value
+//   double tKelvin = 0;             // Holds calculated temperature
+//   double tCelsius = 0;            // Hold temperature in celsius
+//   double adcAverage = 0;          // Holds the average voltage measurement
+//   int adcSamples[SAMPLE_NUMBER];  // Array to hold each voltage measurement
+
+
+//   for (int i = 0; i < SAMPLE_NUMBER; i++) {
+//     adcSamples[i] = analogRead(thermistorPin);  // read from pin and store
+//     delay(10);                                  // wait 10 milliseconds
+//   }
+
+//   /* Then, we will simply average all of those samples up for a "stiffer"
+//     measurement. */
+//   for (int i = 0; i < SAMPLE_NUMBER; i++) {
+//     adcAverage += adcSamples[i];  // add all samples up . . .
+//   }
+//   adcAverage /= SAMPLE_NUMBER;  // . . . average it w/ divide
+
+
+//   rThermistor = BALANCE_RESISTOR * ((MAX_ADC / adcAverage) - 1);
+
+
+//   tKelvin = (BETA * ROOM_TEMP) / (BETA + (ROOM_TEMP * log(rThermistor / RESISTOR_ROOM_TEMP)));
+
+
+//   tCelsius = tKelvin - 273.15;  // convert kelvin to celsius
+
+//   return tCelsius;  // Return the temperature in Celsius
+// }
+
+
+//V3
+#define redPin PIN_PD5
+#define greenPin PIN_PD6
+#define bluePin PIN_PD7
+
+#define FAN PIN_PB0
+#define enable PIN_PB1
+
+#define ntc_pin PIN_PC0
+#define nominal_resistance 10000
+#define nominal_temperature 25
+#define samplingrate 5
+#define beta 3380
+#define Rref 10000
+
+int speed;
+
+void init_temperature_sys();
+void temperature_sys_activate();
 
 void setup() {
-  // Set the port speed for serial window messages
-  Serial.begin(9600);
-  pinMode(thermistorPin, INPUT);
+  init_temperature_sys();
 }
-
 
 void loop() {
-
-  currentTemperature = readThermistor();
-  delay(3000);
-
-
-  if (currentTemperature > 21.0 && currentTemperature < 24.0) {
-    Serial.print("It is ");
-    Serial.print(currentTemperature);
-    Serial.println("C.  very nice temperature.");
-  } else if (currentTemperature >= 24.0) {
-    Serial.print("It is ");
-    Serial.print(currentTemperature);
-    Serial.println("C. hot hot hot");
-  } else {
-    Serial.print("It is ");
-    Serial.print(currentTemperature);
-    Serial.println("C. saaaaa23aaaaa");
-  }
+  temperature_sys_activate();
 }
 
+void init_temperature_sys() {
+  pinMode(ntc_pin, INPUT);
 
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
 
-double readThermistor() {
-  // variables that live in this function
-  double rThermistor = 0;         // Holds thermistor resistance value
-  double tKelvin = 0;             // Holds calculated temperature
-  double tCelsius = 0;            // Hold temperature in celsius
-  double adcAverage = 0;          // Holds the average voltage measurement
-  int adcSamples[SAMPLE_NUMBER];  // Array to hold each voltage measurement
+  pinMode(FAN, OUTPUT);
+  pinMode(enable, OUTPUT);
+}
 
+void temperature_sys_activate() {
+  int i;
+  float average = 0;
 
-  for (int i = 0; i < SAMPLE_NUMBER; i++) {
-    adcSamples[i] = analogRead(thermistorPin);  // read from pin and store
-    delay(10);                                  // wait 10 milliseconds
+  for (i = 0; i < samplingrate; i++) {
+    average += analogRead(ntc_pin);
+    delay(10);
   }
 
-  /* Then, we will simply average all of those samples up for a "stiffer"
-    measurement. */
-  for (int i = 0; i < SAMPLE_NUMBER; i++) {
-    adcAverage += adcSamples[i];  // add all samples up . . .
+  average /= samplingrate;
+  average = (1023 / average - 1.0);
+  average = Rref / average;
+
+  float temperature = average / nominal_resistance;
+  temperature = log(temperature);
+  temperature /= beta;
+  temperature += 1.0 / (nominal_temperature + 273.15);
+  temperature = 1.0 / temperature;
+  temperature -= 273.15;
+
+
+  if (temperature < 20) {
+
+    digitalWrite(FAN, LOW);
+    analogWrite(enable, 0);
+
+    digitalWrite(redPin, LOW);
+    digitalWrite(bluePin, HIGH);
+    digitalWrite(greenPin, LOW);
+
+  } else if (temperature >= 20 && temperature <= 30) {
+
+    speed = map(temperature, 20, 30, 0, 255);
+    analogWrite(enable, speed);
+    digitalWrite(FAN, HIGH);
+
+    digitalWrite(redPin, LOW);
+    digitalWrite(bluePin, LOW);
+    digitalWrite(greenPin, HIGH);
+
+  } else if (temperature > 30) {
+
+    digitalWrite(FAN, HIGH);
+    analogWrite(enable, 255);
+
+    digitalWrite(redPin, HIGH);
+    digitalWrite(bluePin, LOW);
+    digitalWrite(greenPin, LOW);
   }
-  adcAverage /= SAMPLE_NUMBER;  // . . . average it w/ divide
-
-
-  rThermistor = BALANCE_RESISTOR * ((MAX_ADC / adcAverage) - 1);
-
-
-  tKelvin = (BETA * ROOM_TEMP) / (BETA + (ROOM_TEMP * log(rThermistor / RESISTOR_ROOM_TEMP)));
-
-
-  tCelsius = tKelvin - 273.15;  // convert kelvin to celsius
-
-  return tCelsius;  // Return the temperature in Celsius
 }
