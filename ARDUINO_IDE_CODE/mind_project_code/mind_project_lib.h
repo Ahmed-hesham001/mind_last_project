@@ -8,8 +8,8 @@
 using namespace std;
 
 //pir
-#define pirPin PIN_PC0
-#define buzzerPin PIN_PC1
+#define pirPin PIN_PD7
+#define buzzerPin PIN_PD6
 
 void init_pir ();
 void pir_sys_activate ();
@@ -22,14 +22,14 @@ void servo_sys_activate();
 
 //temperature
 
-#define redPin PIN_PD5
-#define greenPin PIN_PD6
-#define bluePin PIN_PD7
+#define redPin PIN_PC2
+#define greenPin PIN_PC3
+#define bluePin PIN_PC4
 
 #define FAN PIN_PB0
 #define enable PIN_PB1
 
-#define ntc_pin PIN_PC0
+#define ntc_pin PIN_PC1
 #define nominal_resistance 10000
 #define nominal_temperature 25
 #define samplingrate 5
@@ -43,8 +43,8 @@ void temperature_sys_activate();
 
 //ldr
 
-#define ldr PIN_PC3
-#define led PIN_PB2
+#define ldr PIN_PC0
+#define led PIN_PB3
 
 void init_ldr () ;
 void ldr_sys_activate ();
