@@ -1,60 +1,61 @@
+#include "WString.h"
+#include "HardwareSerial.h"
+#include "Arduino.h"
+#include "pins_arduino.h"
 #include "mind_project_lib.h"
+#include <avr/pgmspace.h>
 
-
-//pir
-
+// PIR System
 void init_pir() {
   pinMode(pirPin, INPUT);
   pinMode(buzzerPin, OUTPUT);
 }
+
 void pir_sys_activate() {
-  char MotionDetected = digitalRead(pirPin);
-
-  if (MotionDetected) {
-
-    digitalWrite(buzzerPin, HIGH);
-    Serial.println("EMSK 7RAMY");
-
+  if (digitalRead(pirPin)) {
+    digitalWrite(buzzerPin, HIGH);  // Motion detected
   } else {
-
-    digitalWrite(buzzerPin, LOW);
+    digitalWrite(buzzerPin, LOW);  // No motion
   }
 }
 
-
-//door system
-
+// Door System (Servo)
 Servo myservo;
 
 void init_servo() {
   myservo.attach(servoPin);
-  myservo.write(0);
+  myservo.write(0);  // Initially close the door
+  pinMode(door_btn, INPUT_PULLUP);
 }
 
 void servo_sys_activate() {
-  myservo.write(90);
-  delay(3000);
-  myservo.write(0);
+  myservo.write(90);  // Open the door
+  delay(1000);        // Keep door open for 3 seconds
 }
 
-//ldr
+void close_door() {
+  myservo.write(0);  // Close the door
+  delay(3000);
+}
 
+// LDR System
 void init_ldr() {
   pinMode(ldr, INPUT);
   pinMode(led, OUTPUT);
 }
+
 void ldr_sys_activate() {
-   int input = 0;
-  int output = 0;
-  input = analogRead(ldr);
-  Serial.println(input);
-  delay(1000);
-  output = map(input, 0, 1023, 0, 255);
-  analogWrite(led, output);
+  int input = analogRead(ldr);
+  Serial.print(F("light level:"));
+  Serial.println(input);  // Print LDR value for debugging
+  if (input < 500){
+    digitalWrite(led, HIGH);
+  }else{
+    digitalWrite(led, LOW);
+  }
 }
 
-//temperature
-
+// Temperature System
 void init_temperature_sys() {
   pinMode(ntc_pin, INPUT);
 
@@ -67,12 +68,12 @@ void init_temperature_sys() {
 }
 
 void temperature_sys_activate() {
-  int i;
   float average = 0;
+  int speed;
 
-  for (i = 0; i < samplingrate; i++) {
+  for (int i = 0; i < samplingrate; i++) {
     average += analogRead(ntc_pin);
-    delay(10);
+    delay(10);  // Short delay for analog read
   }
 
   average /= samplingrate;
@@ -86,190 +87,71 @@ void temperature_sys_activate() {
   temperature = 1.0 / temperature;
   temperature -= 273.15;
 
-
+  // Control fan and LEDs based on temperature
   if (temperature < 20) {
-
-    digitalWrite(FAN, LOW);
+    digitalWrite(FAN, LOW);  // Turn off fan
     analogWrite(enable, 0);
-
     digitalWrite(redPin, LOW);
     digitalWrite(bluePin, HIGH);
     digitalWrite(greenPin, LOW);
-
   } else if (temperature >= 20 && temperature <= 30) {
-
+    digitalWrite(FAN, HIGH);     // Turn on fan
     speed = map(temperature, 20, 30, 0, 255);
-    analogWrite(enable, speed);
-    digitalWrite(FAN, HIGH);
-
+    analogWrite(enable, speed);  // Adjust fan speed
     digitalWrite(redPin, LOW);
     digitalWrite(bluePin, LOW);
     digitalWrite(greenPin, HIGH);
-
   } else if (temperature > 30) {
-
-    digitalWrite(FAN, HIGH);
-    analogWrite(enable, 255);
-
+    digitalWrite(FAN, HIGH);   // Ensure fan is on
+    analogWrite(enable, 255);  // Full speed
     digitalWrite(redPin, HIGH);
     digitalWrite(bluePin, LOW);
     digitalWrite(greenPin, LOW);
   }
+  Serial.print(F("Temp: "));
+  Serial.print((int)temperature);
+  Serial.println(F("*C"));
 }
 
-//keypad
 
+// Keypad System
 const byte col = 4;
 const byte row = 4;
 
-byte rowPins[row] = { PIN_PB0, PIN_PB1, PD2, PD3 };  //connect to the row pinouts of the keypad
-byte colPins[col] = { PD4, PD5, PD6, PD7 };          //connect to the column pinouts of the keypad
+byte rowPins[row] = { PIN_PB4, PIN_PB5, PIN_PB6, PIN_PB7 };
+byte colPins[col] = { PD2, PD3, PD4, PD5 };
 
-String Saved_Pass = "4545";
-String In_Pass = "";
-
-char i = 0;
-
-void SetCols() {
-  for (int i = 0; i < 4; i++) {
-
-    digitalWrite(colPins[i], HIGH);
-  }
-}
+// Move keymap to flash memory
+const char keymap[row][col] PROGMEM = {
+  { '7', '8', '9', '/' },
+  { '4', '5', '6', '*' },
+  { '1', '2', '3', '-' },
+  { 'c', '0', '=', '+' }
+};
 
 void init_keypad() {
-  for (int i = 0; i < 4; i++) {
-    //Should be INPUT and OUTPUT
-    pinMode(rowPins[i], INPUT);
+  for (int i = 0; i < row; i++) {
+    pinMode(rowPins[i], INPUT_PULLUP);
+  }
+  for (int i = 0; i < col; i++) {
     pinMode(colPins[i], OUTPUT);
-  }
-
-  SetCols();
-}
-
-void ResetCols() {
-
-  for (int i = 0; i < 4; i++) {
-
-    digitalWrite(colPins[i], LOW);
-  }
-}
-
-bool ReadRowPins(char rownum) {
-
-  switch (rownum) {
-    case 0:  //for reading any input in all rows
-      return (digitalRead(rowPins[0]) && 1) || (digitalRead(rowPins[1]) && 1) || (digitalRead(rowPins[2]) && 1) || (digitalRead(rowPins[3]) && 1);
-
-    case 1:
-      return digitalRead(rowPins[0]) && 1;
-
-    case 2:
-      return digitalRead(rowPins[1]) && 1;
-
-    case 3:
-      return digitalRead(rowPins[2]) && 1;
-
-    case 4:
-      return digitalRead(rowPins[3]) && 1;
-
-    default:
-      break;
+    digitalWrite(colPins[i], HIGH);  // Set all columns HIGH
+    delay(20);
   }
 }
 
 char getKey() {
-  ResetCols();  // Reset all columns first
-  SetCols();
-
-  while (1) {
-    if (ReadRowPins(0)) {
-      ResetCols();
-      digitalWrite(colPins[0], HIGH);
-      delay(20);
-      if (ReadRowPins(1)) {
-        delay(20);
-        return '3';
-      } else if (ReadRowPins(2)) {
-        delay(20);
-        return '6';
-      } else if (ReadRowPins(3)) {
-        delay(20);
-        return '9';
-
-      } else if (ReadRowPins(4)) {
-        delay(20);
-        return '#';
-      } else {
-        //Do nothing
-        ResetCols();
-        digitalWrite(colPins[1], HIGH);
-        delay(20);
-        if (ReadRowPins(1)) {
-          delay(20);
-          return '2';
-
-        } else if (ReadRowPins(2)) {
-          delay(20);
-          return '5';
-
-        } else if (ReadRowPins(3)) {
-          delay(20);
-          return '8';
-
-        } else if (ReadRowPins(4)) {
-          delay(2);
-          return '0';
-
-        } else {
-          //Do nothing
-          ResetCols();
-          digitalWrite(colPins[2], HIGH);
-          delay(20);
-          if (ReadRowPins(1)) {
-            delay(20);
-            return '1';
-
-          } else if (ReadRowPins(2)) {
-            delay(20);
-            return '4';
-
-          } else if (ReadRowPins(3)) {
-            delay(20);
-            return '7';
-
-          } else if (ReadRowPins(4)) {
-            delay(20);
-            return '*';
-
-          } else {
-
-            ResetCols();
-            digitalWrite(colPins[3], HIGH);
-            delay(20);
-            if (ReadRowPins(1)) {
-              delay(20);
-              return 'A';
-
-            } else if (ReadRowPins(2)) {
-              delay(20);
-              return 'B';
-
-            } else if (ReadRowPins(3)) {
-              delay(20);
-              return 'C';
-
-            } else if (ReadRowPins(4)) {
-              delay(20);
-              return 'D';
-            }
-          }
-        }
+  for (int c = 0; c < col; c++) {
+    digitalWrite(colPins[c], LOW);  // Pull column low
+    for (int r = 0; r < row; r++) {
+      if (!digitalRead(rowPins[r])) {    // Check if row is pulled low
+        digitalWrite(colPins[c], HIGH);  // Reset column
+        delay(50);                       // Debounce delay
+        // Read keymap value from flash
+        return pgm_read_byte(&(keymap[r][c])); 
       }
-      delay(20);
-      SetCols();
     }
-
-    return 'Q';
+    digitalWrite(colPins[c], HIGH);  // Reset column
   }
+  return '\0';  // No key pressed
 }
