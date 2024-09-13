@@ -1,7 +1,5 @@
 #ifndef MIND_PROJECT_LIB_H
 #define MIND_PROJECT_LIB_H
-
-#include <Atmega8_IO.h>
 #include <math.h>
 #include <Servo.h>
 
@@ -15,7 +13,7 @@ void pir_sys_activate();
 
 // --- DOOR SYSTEM (SERVO) ---
 #define servoPin PIN_PB2
-#define door_btn PIN_PC5
+#define door_btn PIN_PB5
 
 void init_servo();
 void servo_sys_activate();
@@ -47,10 +45,9 @@ void init_ldr();
 void ldr_sys_activate();
 
 // --- KEYPAD SYSTEM ---
+#define Keypad_pin PIN_PC5
+
 void init_keypad();
 char getKey();
-void SetCols();
-void ResetCols();
-bool ReadRowPins(char rownum);
 
 #endif // MIND_PROJECT_LIB_H

@@ -48,9 +48,9 @@ void ldr_sys_activate() {
   int input = analogRead(ldr);
   Serial.print(F("light level:"));
   Serial.println(input);  // Print LDR value for debugging
-  if (input < 500){
+  if (input < 500) {
     digitalWrite(led, HIGH);
-  }else{
+  } else {
     digitalWrite(led, LOW);
   }
 }
@@ -95,7 +95,7 @@ void temperature_sys_activate() {
     digitalWrite(bluePin, HIGH);
     digitalWrite(greenPin, LOW);
   } else if (temperature >= 20 && temperature <= 30) {
-    digitalWrite(FAN, HIGH);     // Turn on fan
+    digitalWrite(FAN, HIGH);  // Turn on fan
     speed = map(temperature, 20, 30, 0, 255);
     analogWrite(enable, speed);  // Adjust fan speed
     digitalWrite(redPin, LOW);
@@ -115,43 +115,89 @@ void temperature_sys_activate() {
 
 
 // Keypad System
-const byte col = 4;
-const byte row = 4;
+// const byte col = 4;
+// const byte row = 4;
 
-byte rowPins[row] = { PIN_PB4, PIN_PB5, PIN_PB6, PIN_PB7 };
-byte colPins[col] = { PD2, PD3, PD4, PD5 };
+// byte rowPins[row] = { PIN_PB4, PIN_PB5, PIN_PB6, PIN_PB7 };
+// byte colPins[col] = { PD2, PD3, PD4, PD5 };
 
-// Move keymap to flash memory
-const char keymap[row][col] PROGMEM = {
-  { '7', '8', '9', '/' },
-  { '4', '5', '6', '*' },
-  { '1', '2', '3', '-' },
-  { 'c', '0', '=', '+' }
-};
+// // Move keymap to flash memory
+// const char keymap[row][col] PROGMEM = {
+//   { '7', '8', '9', '/' },
+//   { '4', '5', '6', '*' },
+//   { '1', '2', '3', '-' },
+//   { 'c', '0', '=', '+' }
+// };
+
+// void init_keypad() {
+//   for (int i = 0; i < row; i++) {
+//     pinMode(rowPins[i], INPUT_PULLUP);
+//   }
+//   for (int i = 0; i < col; i++) {
+//     pinMode(colPins[i], OUTPUT);
+//     digitalWrite(colPins[i], HIGH);  // Set all columns HIGH
+//     delay(20);
+//   }
+// }
+
+// char getKey() {
+//   for (int c = 0; c < col; c++) {
+//     digitalWrite(colPins[c], LOW);  // Pull column low
+//     for (int r = 0; r < row; r++) {
+//       if (!digitalRead(rowPins[r])) {    // Check if row is pulled low
+//         digitalWrite(colPins[c], HIGH);  // Reset column
+//         delay(50);                       // Debounce delay
+//         // Read keymap value from flash
+//         return pgm_read_byte(&(keymap[r][c]));
+//       }
+//     }
+//     digitalWrite(colPins[c], HIGH);  // Reset column
+//   }
+//   return '\0';  // No key pressed
+// }
 
 void init_keypad() {
-  for (int i = 0; i < row; i++) {
-    pinMode(rowPins[i], INPUT_PULLUP);
-  }
-  for (int i = 0; i < col; i++) {
-    pinMode(colPins[i], OUTPUT);
-    digitalWrite(colPins[i], HIGH);  // Set all columns HIGH
-    delay(20);
-  }
+  pinMode(Keypad_pin, INPUT);
 }
 
 char getKey() {
-  for (int c = 0; c < col; c++) {
-    digitalWrite(colPins[c], LOW);  // Pull column low
-    for (int r = 0; r < row; r++) {
-      if (!digitalRead(rowPins[r])) {    // Check if row is pulled low
-        digitalWrite(colPins[c], HIGH);  // Reset column
-        delay(50);                       // Debounce delay
-        // Read keymap value from flash
-        return pgm_read_byte(&(keymap[r][c])); 
-      }
-    }
-    digitalWrite(colPins[c], HIGH);  // Reset column
+  int reading = analogRead(Keypad_pin);
+  Serial.println(reading);
+
+  switch (reading) {
+    case 0 ... 30:
+      return '*';
+    case 57 ... 77:
+      return '0';
+    case 110 ... 170:
+      return '#';
+    case 171 ... 187:
+      return 'D';
+    case 240 ... 260:
+      return '7';
+    case 270 ... 300:
+      return '8';
+    case 301 ... 340:
+      return '9';
+    case 341 ... 370:
+      return 'C';
+    case 371 ... 410:
+      return '4';
+    case 411 ... 440:
+      return '5';
+    case 441 ... 460:
+      return '6';
+    case 461 ... 480:
+      return 'B';
+    case 481 ... 510:
+      return '1';
+    case 511 ... 525:
+      return '2';
+    case 526 ... 540:
+      return '3';
+    case 541 ... 560:
+      return 'A';
+    default:
+      return '\0';
   }
-  return '\0';  // No key pressed
 }

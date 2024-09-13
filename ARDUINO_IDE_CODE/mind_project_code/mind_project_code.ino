@@ -1,4 +1,3 @@
-#include <Atmega8_IO.h>
 #include "mind_project_lib.h"
 #include <avr/pgmspace.h>
 
