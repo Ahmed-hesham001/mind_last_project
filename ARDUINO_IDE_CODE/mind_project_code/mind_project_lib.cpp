@@ -162,7 +162,7 @@ void init_keypad() {
 
 char getKey() {
   int reading = analogRead(Keypad_pin);
-  Serial.println(reading);
+  // Serial.println(reading);
 
   switch (reading) {
     case 0 ... 30:
