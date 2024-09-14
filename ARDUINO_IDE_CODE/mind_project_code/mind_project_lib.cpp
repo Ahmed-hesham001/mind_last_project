@@ -115,46 +115,6 @@ void temperature_sys_activate() {
 
 
 // Keypad System
-// const byte col = 4;
-// const byte row = 4;
-
-// byte rowPins[row] = { PIN_PB4, PIN_PB5, PIN_PB6, PIN_PB7 };
-// byte colPins[col] = { PD2, PD3, PD4, PD5 };
-
-// // Move keymap to flash memory
-// const char keymap[row][col] PROGMEM = {
-//   { '7', '8', '9', '/' },
-//   { '4', '5', '6', '*' },
-//   { '1', '2', '3', '-' },
-//   { 'c', '0', '=', '+' }
-// };
-
-// void init_keypad() {
-//   for (int i = 0; i < row; i++) {
-//     pinMode(rowPins[i], INPUT_PULLUP);
-//   }
-//   for (int i = 0; i < col; i++) {
-//     pinMode(colPins[i], OUTPUT);
-//     digitalWrite(colPins[i], HIGH);  // Set all columns HIGH
-//     delay(20);
-//   }
-// }
-
-// char getKey() {
-//   for (int c = 0; c < col; c++) {
-//     digitalWrite(colPins[c], LOW);  // Pull column low
-//     for (int r = 0; r < row; r++) {
-//       if (!digitalRead(rowPins[r])) {    // Check if row is pulled low
-//         digitalWrite(colPins[c], HIGH);  // Reset column
-//         delay(50);                       // Debounce delay
-//         // Read keymap value from flash
-//         return pgm_read_byte(&(keymap[r][c]));
-//       }
-//     }
-//     digitalWrite(colPins[c], HIGH);  // Reset column
-//   }
-//   return '\0';  // No key pressed
-// }
 
 void init_keypad() {
   pinMode(Keypad_pin, INPUT);
