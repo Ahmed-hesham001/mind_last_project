@@ -12,6 +12,8 @@ void init_pir() {
 }
 
 void pir_sys_activate() {
+  // Serial.println("pir active");
+  delay(500);
   if (digitalRead(pirPin)) {
     digitalWrite(buzzerPin, HIGH);  // Motion detected
   } else {
@@ -35,7 +37,7 @@ void servo_sys_activate() {
 
 void close_door() {
   myservo.write(0);  // Close the door
-  delay(3000);
+  delay(1000);
 }
 
 // LDR System
@@ -46,8 +48,8 @@ void init_ldr() {
 
 void ldr_sys_activate() {
   int input = analogRead(ldr);
-  Serial.print(F("light level:"));
-  Serial.println(input);  // Print LDR value for debugging
+  // Serial.print(F("light level:"));
+  // Serial.println(input);  // Print LDR value for debugging
   if (input < 500) {
     digitalWrite(led, HIGH);
   } else {
@@ -57,7 +59,7 @@ void ldr_sys_activate() {
 
 // Temperature System
 void init_temperature_sys() {
-  pinMode(ntc_pin, INPUT);
+  // pinMode(ntc_pin, INPUT);
 
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
@@ -87,6 +89,20 @@ void temperature_sys_activate() {
   temperature = 1.0 / temperature;
   temperature -= 273.15;
 
+
+  // float referenceVoltage = 5.0;  // Arduino 5V power supply
+
+  // int analogValue = analogRead(ntc_pin);                      // Read the analog value from KY-028
+  // float voltage = (analogValue / 1023.0) * referenceVoltage;  // Convert to voltage
+
+
+  // // Optional: You can map the analog reading to a rough temperature range (if needed)
+  // float temperature = map(analogValue, 0, 1023, 10, 70);  // Approximate temperature range
+
+
+  // delay(1000);  // Wait for 1 second before taking another reading
+
+  // int speed;
   // Control fan and LEDs based on temperature
   if (temperature < 20) {
     digitalWrite(FAN, LOW);  // Turn off fan
@@ -108,9 +124,9 @@ void temperature_sys_activate() {
     digitalWrite(bluePin, LOW);
     digitalWrite(greenPin, LOW);
   }
-  Serial.print(F("Temp: "));
-  Serial.print((int)temperature);
-  Serial.println(F("*C"));
+  Serial.print(" | Temperature (approx): ");
+  Serial.print(temperature);
+  Serial.println(" °C");
 }
 
 
@@ -125,37 +141,37 @@ char getKey() {
   // Serial.println(reading);
 
   switch (reading) {
-    case 0 ... 30:
+    case 292 ... 312:
       return '*';
-    case 57 ... 77:
+    case 337 ... 357:
       return '0';
-    case 110 ... 170:
+    case 378 ... 398:
       return '#';
-    case 171 ... 187:
+    case 417 ... 437:
       return 'D';
-    case 240 ... 260:
+    case 10 ... 30:
       return '7';
-    case 270 ... 300:
+    case 85 ... 105:
       return '8';
-    case 301 ... 340:
+    case 156 ... 176:
       return '9';
-    case 341 ... 370:
+    case 214 ... 234:
       return 'C';
-    case 371 ... 410:
+    case 470 ... 490:
       return '4';
-    case 411 ... 440:
+    case 500 ... 520:
       return '5';
-    case 441 ... 460:
+    case 530 ... 550:
       return '6';
-    case 461 ... 480:
+    case 554 ... 574:
       return 'B';
-    case 481 ... 510:
+    case 590 ... 610:
       return '1';
-    case 511 ... 525:
+    case 611 ... 630:
       return '2';
-    case 526 ... 540:
+    case 631 ... 650:
       return '3';
-    case 541 ... 560:
+    case 651 ... 670:
       return 'A';
     default:
       return '\0';
